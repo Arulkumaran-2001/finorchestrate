@@ -1,0 +1,396 @@
+.chart-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chart-frame__toggle {
+  display: inline-flex;
+  align-self: flex-end;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--color-sunken);
+  border: 1px solid var(--color-line);
+}
+
+.chart-frame__tab {
+  min-height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.chart-frame__tab--active {
+  background: var(--color-raised);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-1);
+}
+
+.chart {
+  position: relative;
+  width: 100%;
+  outline: none;
+  border-radius: var(--radius-sm);
+  touch-action: pan-y;
+}
+
+.chart:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-focus);
+}
+
+.chart__svg {
+  display: block;
+  overflow: visible;
+}
+
+.chart__grid line {
+  stroke: var(--color-line);
+  stroke-width: 1;
+}
+
+.chart__grid text,
+.chart__axis-label {
+  fill: var(--color-ink-3);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__baseline {
+  stroke: var(--color-line-strong);
+  stroke-width: 1;
+}
+
+.chart__zero {
+  stroke: var(--color-critical);
+  stroke-width: 1;
+}
+
+.chart__area--actual {
+  fill: color-mix(in srgb, var(--color-series-1) 10%, transparent);
+}
+
+.chart__band {
+  fill: color-mix(in srgb, var(--color-series-1) 16%, transparent);
+}
+
+.chart__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart__line--actual {
+  stroke: var(--color-series-1);
+}
+
+.chart__line--forecast {
+  stroke: var(--color-series-1);
+  opacity: 0.75;
+}
+
+.chart__today {
+  stroke: var(--color-ink-3);
+  stroke-width: 1;
+}
+
+.chart__today-label {
+  fill: var(--color-ink-3);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chart__crosshair {
+  stroke: var(--color-ink-2);
+  stroke-width: 1;
+}
+
+.chart__dot {
+  fill: var(--color-series-1);
+  stroke: var(--color-surface);
+  stroke-width: 2;
+}
+
+.chart__dot--focus {
+  fill: var(--color-raised);
+  stroke: var(--color-series-1);
+  stroke-width: 2.5;
+}
+
+.chart__hit {
+  fill: transparent;
+  outline: none;
+}
+
+.chart__bar {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.chart__bar--income {
+  fill: var(--color-income);
+}
+
+.chart__bar--expense {
+  fill: var(--color-expense);
+}
+
+.chart__column-group--active .chart__axis-label {
+  fill: var(--color-ink);
+}
+
+.chart:has(.chart__column-group--active) .chart__column-group:not(.chart__column-group--active) .chart__bar {
+  opacity: 0.45;
+}
+
+.chart__tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translateX(-50%);
+  min-width: 160px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-raised);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-2);
+  pointer-events: none;
+  font-size: var(--text-sm);
+  line-height: 20px;
+}
+
+.chart__tooltip-title {
+  font-weight: 750;
+  margin-bottom: 2px;
+}
+
+.chart__tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__tooltip-row strong {
+  margin-left: auto;
+  padding-left: 12px;
+}
+
+.chart__tooltip-row--muted {
+  color: var(--color-ink-3);
+}
+
+.chart__key {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.chart__key--block {
+  height: 10px;
+  width: 10px;
+  border-radius: 3px;
+}
+
+.chart__key--actual {
+  background: var(--color-series-1);
+}
+
+.chart__key--forecast {
+  background: var(--color-series-1);
+  opacity: 0.75;
+}
+
+.chart__key--band {
+  height: 10px;
+  background: color-mix(in srgb, var(--color-series-1) 20%, transparent);
+}
+
+.chart__key--income {
+  background: var(--color-income);
+}
+
+.chart__key--expense {
+  background: var(--color-expense);
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--color-ink-2);
+}
+
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-legend--small {
+  gap: 4px 14px;
+  color: var(--color-ink-3);
+}
+
+.chart-legend__note {
+  color: var(--color-ink-3);
+}
+
+.chart-table {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+}
+
+.chart-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-table th,
+.chart-table td {
+  padding: 8px 12px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.chart-table th:first-child,
+.chart-table td:first-child {
+  text-align: left;
+}
+
+.chart-table th {
+  color: var(--color-ink-3);
+  font-weight: 700;
+  background: var(--color-sunken);
+}
+
+.chart-table tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Meter */
+.meter {
+  position: relative;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-sunken);
+}
+
+.meter--sm {
+  height: 8px;
+}
+
+.meter__fill,
+.meter__projection {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--radius-pill);
+  transition: width 600ms var(--ease-out);
+}
+
+.meter__fill {
+  background: var(--color-good);
+}
+
+.meter__projection {
+  background: color-mix(in srgb, var(--color-good) 28%, transparent);
+}
+
+.meter--watch .meter__fill {
+  background: var(--color-warning);
+}
+
+.meter--watch .meter__projection {
+  background: color-mix(in srgb, var(--color-warning) 32%, transparent);
+}
+
+.meter--at_risk .meter__fill {
+  background: var(--color-serious);
+}
+
+.meter--at_risk .meter__projection {
+  background: color-mix(in srgb, var(--color-serious) 32%, transparent);
+}
+
+.meter--over .meter__fill {
+  background: var(--color-critical);
+}
+
+.meter--over .meter__projection {
+  background: color-mix(in srgb, var(--color-critical) 28%, transparent);
+}
+
+.meter__limit {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--color-ink);
+  box-shadow: 0 0 0 2px var(--color-surface);
+  transition: left 600ms var(--ease-out);
+}
+
+.meter-key {
+  display: inline-block;
+  width: 14px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* Legend keys explain shape only; the meter color itself carries health. */
+.meter-key--fill {
+  background: var(--color-ink-2);
+}
+
+.meter-key--projection {
+  background: color-mix(in srgb, var(--color-ink-2) 26%, transparent);
+}
+
+.meter-key--limit {
+  width: 2px;
+  height: 12px;
+  background: var(--color-ink);
+}
+
+/* Sparkline */
+.sparkline {
+  width: 100%;
+}
+
+.sparkline svg {
+  display: block;
+}
+
+.sparkline__area {
+  fill: color-mix(in srgb, var(--color-series-1) 10%, transparent);
+}
+
+.sparkline__line {
+  fill: none;
+  stroke: var(--color-series-1);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sparkline__dot {
+  fill: var(--color-series-1);
+  stroke: var(--color-surface);
+  stroke-width: 2;
+}

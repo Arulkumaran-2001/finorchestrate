@@ -1,0 +1,168 @@
+/*
+ * Design tokens. Every color, radius, shadow and type size used by the
+ * dashboard comes from here, so light and dark mode change in one place.
+ * Dark values are stepped for the dark surface, not inverted.
+ */
+:root {
+  color-scheme: light;
+
+  --color-page: #f5f4f0;
+  --color-surface: #fcfcfb;
+  --color-raised: #ffffff;
+  --color-sunken: #efeee9;
+  --color-hover: #f1f0eb;
+  --color-ink: #10141a;
+  --color-ink-2: #4f4e4a;
+  --color-ink-3: #75736d;
+  --color-line: #e4e2db;
+  --color-line-strong: #cfccc3;
+  --color-overlay: rgba(16, 20, 26, 0.42);
+
+  --color-accent: #2f3fd1;
+  --color-accent-hover: #2633b3;
+  --color-accent-soft: #e9ebfc;
+  --color-accent-ink: #ffffff;
+  --color-focus: #2f3fd1;
+  --color-voice-1: #12b5d9;
+  --color-voice-2: #6d5cf6;
+
+  --color-good: #0ca30c;
+  --color-good-ink: #0b6b0b;
+  --color-good-soft: #e3f4e3;
+  --color-warning: #fab219;
+  --color-warning-ink: #855600;
+  --color-warning-soft: #fdf1d6;
+  --color-serious: #ec835a;
+  --color-serious-ink: #a8481f;
+  --color-serious-soft: #fce8df;
+  --color-critical: #d03b3b;
+  --color-critical-ink: #a32727;
+  --color-critical-soft: #fae3e3;
+
+  --color-series-1: #2a78d6;
+  --color-series-2: #eb6834;
+  --color-series-3: #1baf7a;
+  --color-series-4: #eda100;
+  --color-series-5: #e87ba4;
+  --color-series-6: #008300;
+  --color-income: #1baf7a;
+  --color-expense: #2a78d6;
+
+  --shadow-1: 0 1px 2px rgba(16, 20, 26, 0.06), 0 1px 1px rgba(16, 20, 26, 0.04);
+  --shadow-2: 0 10px 28px rgba(16, 20, 26, 0.08), 0 2px 6px rgba(16, 20, 26, 0.05);
+  --shadow-3: 0 28px 70px rgba(16, 20, 26, 0.22), 0 6px 16px rgba(16, 20, 26, 0.08);
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  --font-sans: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-hero: 56px;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+
+  --sidebar-width: 248px;
+  --rail-width: 76px;
+  --topbar-height: 64px;
+  --gutter: 28px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --gutter: 16px;
+    --text-hero: 44px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-page: #0c0d10;
+    --color-surface: #141519;
+    --color-raised: #1b1d22;
+    --color-sunken: #101114;
+    --color-hover: #22242a;
+    --color-ink: #f3f3f1;
+    --color-ink-2: #c4c3bb;
+    --color-ink-3: #93918a;
+    --color-line: #26282e;
+    --color-line-strong: #383a42;
+    --color-overlay: rgba(0, 0, 0, 0.6);
+    --color-accent: #8f9bff;
+    --color-accent-hover: #a9b2ff;
+    --color-accent-soft: #1f2347;
+    --color-accent-ink: #0b0e2b;
+    --color-focus: #a9b2ff;
+    --color-good-ink: #52d152;
+    --color-good-soft: #10260f;
+    --color-warning-ink: #fbc24a;
+    --color-warning-soft: #2c2210;
+    --color-serious-ink: #f2a081;
+    --color-serious-soft: #2e1a12;
+    --color-critical-ink: #ff8f8f;
+    --color-critical-soft: #2f1416;
+    --color-series-1: #3987e5;
+    --color-series-2: #d95926;
+    --color-series-3: #199e70;
+    --color-series-4: #c98500;
+    --color-series-5: #d55181;
+    --color-series-6: #008300;
+    --color-income: #199e70;
+    --color-expense: #3987e5;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 10px 28px rgba(0, 0, 0, 0.45);
+    --shadow-3: 0 28px 70px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-page: #0c0d10;
+  --color-surface: #141519;
+  --color-raised: #1b1d22;
+  --color-sunken: #101114;
+  --color-hover: #22242a;
+  --color-ink: #f3f3f1;
+  --color-ink-2: #c4c3bb;
+  --color-ink-3: #93918a;
+  --color-line: #26282e;
+  --color-line-strong: #383a42;
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-accent: #8f9bff;
+  --color-accent-hover: #a9b2ff;
+  --color-accent-soft: #1f2347;
+  --color-accent-ink: #0b0e2b;
+  --color-focus: #a9b2ff;
+  --color-good-ink: #52d152;
+  --color-good-soft: #10260f;
+  --color-warning-ink: #fbc24a;
+  --color-warning-soft: #2c2210;
+  --color-serious-ink: #f2a081;
+  --color-serious-soft: #2e1a12;
+  --color-critical-ink: #ff8f8f;
+  --color-critical-soft: #2f1416;
+  --color-series-1: #3987e5;
+  --color-series-2: #d95926;
+  --color-series-3: #199e70;
+  --color-series-4: #c98500;
+  --color-series-5: #d55181;
+  --color-series-6: #008300;
+  --color-income: #199e70;
+  --color-expense: #3987e5;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 28px 70px rgba(0, 0, 0, 0.6);
+}

@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  FinOrchestrate voice budget guardian. One container image on AWS Lambda serves the
+  dashboard, the MCP endpoint (Streamable HTTP) and the scheduled guardian sweep.
+  Data lives in DynamoDB, alerts go out through Amazon SNS, and the voice console
+  can plan with Amazon Bedrock.
+
+Parameters:
+  ApiToken:
+    Type: String
+    NoEcho: true
+    MinLength: 16
+    Description: Bearer token for MCP clients and the dashboard access key.
+  SessionSecret:
+    Type: String
+    NoEcho: true
+    MinLength: 16
+    Description: Signs dashboard sessions and authenticates scheduled sweeps.
+  BedrockModelId:
+    Type: String
+    Default: amazon.nova-lite-v1:0
+    Description: Model for the voice console planner. Set to an empty string to use the local intent engine only.
+  AlertEmail:
+    Type: String
+    Default: ''
+    Description: Optional email address subscribed to guardian alerts.
+  DemoMode:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enables one click demo sign in and demo resets. Keep false for real data.
+  SweepSchedule:
+    Type: String
+    Default: rate(1 hour)
+    Description: EventBridge Scheduler expression for guardian sweeps.
+
+Conditions:
+  HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
+
+Resources:
+  LedgerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: FinOrchestrate guardian
+
+  AlertsSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAlertEmail
+    Properties:
+      TopicArn: !Ref AlertsTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      MemorySize: 1024
+      Timeout: 60
+      Architectures: [x86_64]
+      Environment:
+        Variables:
+          FINO_STORE: dynamodb
+          FINO_DYNAMODB_TABLE: !Ref LedgerTable
+          FINO_API_TOKEN: !Ref ApiToken
+          FINO_SESSION_SECRET: !Ref SessionSecret
+          FINO_DEMO_MODE: !Ref DemoMode
+          FINO_BEDROCK_MODEL_ID: !Ref BedrockModelId
+          FINO_SNS_TOPIC_ARN: !Ref AlertsTopic
+          FINO_GUARDIAN_SCHEDULE: 'false'
+          FINO_ALLOWED_HOSTS: !Sub '*.lambda-url.${AWS::Region}.on.aws'
+          AWS_LWA_PASS_THROUGH_PATH: /internal/guardian-sweep
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LedgerTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt AlertsTopic.TopicName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource:
+                - arn:aws:bedrock:*::foundation-model/*
+                - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/*
+    Metadata:
+      DockerContext: ../..
+      Dockerfile: Dockerfile
+      DockerTag: latest
+
+  SchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-guardian
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt AppFunction.Arn
+
+  GuardianSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Runs the FinOrchestrate guardian sweep.
+      ScheduleExpression: !Ref SweepSchedule
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn: !GetAtt AppFunction.Arn
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: !Sub '{"source":"finorchestrate.scheduler","secret":"${SessionSecret}"}'
+
+Outputs:
+  DashboardUrl:
+    Description: Open this to use the dashboard and the voice console.
+    Value: !GetAtt AppFunctionUrl.FunctionUrl
+  McpEndpoint:
+    Description: Register this endpoint with your Alexa+ connector or MCP client, with the API token as a bearer token.
+    Value: !Sub '${AppFunctionUrl.FunctionUrl}mcp'
+  LedgerTableName:
+    Value: !Ref LedgerTable
+  AlertsTopicArn:
+    Value: !Ref AlertsTopic

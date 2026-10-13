@@ -1,0 +1,144 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 650;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button--loading:disabled {
+  cursor: progress;
+  opacity: 1;
+}
+
+.button--sm {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: var(--text-sm);
+  border-radius: 7px;
+}
+
+.button--md {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: var(--text-md);
+}
+
+.button--lg {
+  min-height: 48px;
+  padding: 0 22px;
+  font-size: var(--text-lg);
+  border-radius: var(--radius-md);
+}
+
+.button--icon-only.button--sm {
+  width: 32px;
+  padding: 0;
+}
+
+.button--icon-only.button--md {
+  width: 40px;
+  padding: 0;
+}
+
+.button--icon-only.button--lg {
+  width: 48px;
+  padding: 0;
+}
+
+.button--block {
+  width: 100%;
+}
+
+.button--primary {
+  background: var(--color-ink);
+  color: var(--color-page);
+  box-shadow: var(--shadow-1);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-ink) 86%, var(--color-accent));
+}
+
+.button--secondary {
+  background: var(--color-raised);
+  border-color: var(--color-line);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-1);
+}
+
+.button--secondary:hover:not(:disabled) {
+  border-color: var(--color-line-strong);
+  background: var(--color-hover);
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--color-ink-2);
+}
+
+.button--ghost:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-ink);
+}
+
+.button--quiet {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.button--quiet:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent-soft) 70%, var(--color-accent));
+  color: var(--color-accent-ink);
+}
+
+.button--danger {
+  background: var(--color-critical-soft);
+  color: var(--color-critical-ink);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: var(--color-critical);
+  color: #ffffff;
+}
+
+.button__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.button__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: button-spin 700ms linear infinite;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

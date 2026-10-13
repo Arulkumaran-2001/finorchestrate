@@ -1,0 +1,21 @@
+{
+  "name": "@finorchestrate/card",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "MCP App view that renders every FinOrchestrate tool result as an interactive card.",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "@finorchestrate/core": "*",
+    "@finorchestrate/icons": "*",
+    "@modelcontextprotocol/ext-apps": "^2.0.3"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

@@ -1,0 +1,226 @@
+.guardian {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.guardian-status {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--color-good) 18%, transparent), transparent 46%),
+    var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-1);
+}
+
+.guardian-status--paused {
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--color-warning) 20%, transparent), transparent 46%),
+    var(--color-surface);
+}
+
+.guardian-status__main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.guardian-status__shield {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--color-good);
+  color: #ffffff;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--color-good) 35%, transparent);
+  flex: none;
+}
+
+.guardian-status--paused .guardian-status__shield {
+  background: var(--color-warning);
+  color: #1b1300;
+  box-shadow: none;
+}
+
+.guardian-status__text {
+  flex: 1;
+  min-width: 180px;
+}
+
+.guardian-status__state {
+  font-size: var(--text-xl);
+  line-height: 28px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.guardian-status__meta {
+  color: var(--color-ink-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.guardian-status__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.guardian-stat {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-raised);
+  border: 1px solid var(--color-line);
+  min-width: 0;
+}
+
+.guardian-stat__label {
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--color-ink-3);
+}
+
+.guardian-stat__value {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.guardian-stat__value span {
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--color-ink-3);
+  letter-spacing: 0;
+}
+
+.guardian-stat__hint {
+  font-size: var(--text-xs);
+  color: var(--color-ink-3);
+  font-weight: 600;
+}
+
+.guardian-stat__track {
+  height: 8px;
+  margin-top: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  overflow: hidden;
+}
+
+.guardian-stat__track span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transition: width 600ms var(--ease-out);
+}
+
+.guardian-status__report {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.guardian-status__report svg {
+  color: var(--color-accent);
+  margin-top: 2px;
+}
+
+.how-it-decides {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  counter-reset: none;
+}
+
+.how-it-decides__step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+}
+
+.how-it-decides__index {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--color-ink-3);
+}
+
+.how-it-decides__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  margin-bottom: 4px;
+}
+
+.how-it-decides__title {
+  font-weight: 800;
+  line-height: 20px;
+}
+
+.how-it-decides__text {
+  font-size: var(--text-sm);
+  line-height: 20px;
+  color: var(--color-ink-3);
+}
+
+.policy-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+@media (max-width: 1199px) {
+  .how-it-decides {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .guardian-status {
+    padding: 16px;
+  }
+
+  .guardian-status__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guardian-status__grid .guardian-stat:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 479px) {
+  .how-it-decides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .policy-actions .button {
+    flex: 1;
+  }
+}

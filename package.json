@@ -1,0 +1,29 @@
+{
+  "name": "finorchestrate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Voice budget guardian for developer teams: a self-hosted MCP server with an autonomous guardian, MCP Apps cards and a live dashboard.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run build:card && node scripts/dev.mjs",
+    "build": "npm run build:card && npm run build --workspace @finorchestrate/web && npm run build --workspace @finorchestrate/server",
+    "build:card": "npm run build --workspace @finorchestrate/card",
+    "start": "npm run start --workspace @finorchestrate/server",
+    "test": "vitest run",
+    "typecheck": "tsc -p packages/core && tsc -p packages/icons && tsc -p apps/card && tsc -p apps/server && tsc -p apps/web",
+    "reset": "node scripts/reset.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.4"
+  }
+}

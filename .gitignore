@@ -1,0 +1,26 @@
+# Dependencies and builds
+node_modules/
+dist/
+apps/server/views/
+*.tsbuildinfo
+
+# Local ledger and generated secrets
+data/
+.qa-*/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# AWS SAM
+.aws-sam/
+samconfig.toml
+
+# Logs and OS files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
