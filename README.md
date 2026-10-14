@@ -169,9 +169,9 @@ Step by step instructions, Bedrock model access and cost notes are in [docs/depl
 
 ## Deploy on Vercel
 
-FinOrchestrate is one Node service: the server also serves the built dashboard and the card, so it deploys as **one** Vercel project. [vercel.json](vercel.json) declares a single container service built from [Dockerfile.vercel](Dockerfile.vercel) and routes every path to it.
+FinOrchestrate is one Node service: the server also serves the built dashboard and the card, so it deploys as **one** Vercel project. Vercel detects [Dockerfile.vercel](Dockerfile.vercel) at the repository root, builds it as a container and routes every path to it.
 
-1. Import the repository in Vercel. It detects `vercel.json`; keep the Services preset and the root directory `./`.
+1. Import the repository in Vercel. Keep the Container preset and the root directory `./`.
 2. Add two environment variables: `FINO_API_TOKEN` (24 or more random characters) and `FINO_SESSION_SECRET` (32 or more random characters).
 3. Deploy, then open the deployment URL and choose **Explore the demo workspace**.
 
