@@ -167,6 +167,16 @@ sam deploy --guided --template .aws-sam/build/template.yaml
 
 Step by step instructions, Bedrock model access and cost notes are in [docs/deploy-aws.md](docs/deploy-aws.md). The same `Dockerfile` runs on any container host.
 
+## Deploy on Vercel
+
+FinOrchestrate is one Node service: the server also serves the built dashboard and the card, so it deploys as **one** Vercel project. [vercel.json](vercel.json) declares a single container service built from [Dockerfile.vercel](Dockerfile.vercel) and routes every path to it.
+
+1. Import the repository in Vercel. It detects `vercel.json`; keep the Services preset and the root directory `./`.
+2. Add two environment variables: `FINO_API_TOKEN` (24 or more random characters) and `FINO_SESSION_SECRET` (32 or more random characters).
+3. Deploy, then open the deployment URL and choose **Explore the demo workspace**.
+
+The Vercel image keeps the demo ledger in memory and accepts `*.vercel.app` hostnames. Vercel containers scale to zero when idle, so the demo ledger resets after a quiet period. For a custom domain, set `FINO_ALLOWED_HOSTS` and `FINO_PUBLIC_URL` too.
+
 ## Quality
 
 ```bash
