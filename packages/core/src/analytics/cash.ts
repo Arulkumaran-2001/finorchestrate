@@ -26,7 +26,8 @@ export interface MonthlyFlow {
   complete: boolean;
 }
 
-export function monthlyFlows(snapshot: LedgerSnapshot, now: Date, months = 6): MonthlyFlow[] {
+/** `include` narrows the flows to some transactions (one envelope, say) without changing which months count as complete. */
+export function monthlyFlows(snapshot: LedgerSnapshot, now: Date, months = 6, include: (tx: Transaction) => boolean = () => true): MonthlyFlow[] {
   const current = periodOf(now);
   const flows: MonthlyFlow[] = [];
   const opening = new Date(snapshot.workspace.openingBalanceAt);
@@ -36,7 +37,7 @@ export function monthlyFlows(snapshot: LedgerSnapshot, now: Date, months = 6): M
     const end = periodEnd(period);
     if (end.getTime() <= opening.getTime()) continue;
     const cutoff = new Date(Math.min(end.getTime(), now.getTime() + 1));
-    const inPeriod = snapshot.transactions.filter((tx) => isWithin(tx.occurredAt, start, cutoff));
+    const inPeriod = snapshot.transactions.filter((tx) => include(tx) && isWithin(tx.occurredAt, start, cutoff));
     const incomeCents = sumCents(inPeriod.filter((tx) => tx.direction === 'income').map((tx) => tx.amountCents));
     const expenseCents = sumCents(inPeriod.filter((tx) => tx.direction === 'expense').map((tx) => tx.amountCents));
     flows.push({
@@ -64,8 +65,8 @@ export interface BurnProfile {
  * Burn uses up to three complete months. When the ledger is younger than
  * that, the current month is extrapolated to a full month instead.
  */
-export function burnProfile(snapshot: LedgerSnapshot, now: Date, lookback = 3): BurnProfile {
-  const flows = monthlyFlows(snapshot, now, lookback + 1);
+export function burnProfile(snapshot: LedgerSnapshot, now: Date, lookback = 3, include?: (tx: Transaction) => boolean): BurnProfile {
+  const flows = monthlyFlows(snapshot, now, lookback + 1, include);
   const complete = flows.filter((flow) => flow.complete).slice(-lookback);
   if (complete.length > 0) {
     const averageExpenseCents = Math.round(sumCents(complete.map((f) => f.expenseCents)) / complete.length);
@@ -97,6 +98,8 @@ export function burnProfile(snapshot: LedgerSnapshot, now: Date, lookback = 3): 
 export interface Runway {
   cashCents: Cents;
   stressPercent: number;
+  /** The envelope the change applies to, or null when it applies to all spending. */
+  stressCategoryId: string | null;
   monthlyExpenseCents: Cents;
   monthlyIncomeCents: Cents;
   monthlyNetBurnCents: Cents;
@@ -110,11 +113,18 @@ export interface Runway {
   basis: { sampleMonths: number; extrapolated: boolean };
 }
 
-export function computeRunway(snapshot: LedgerSnapshot, now: Date, stressPercent = 0): Runway {
+/**
+ * `stressPercent` simulates spending changing by that much. With `stressCategoryId`
+ * only that envelope's share changes, measured over the same months as the burn.
+ */
+export function computeRunway(snapshot: LedgerSnapshot, now: Date, stressPercent = 0, stressCategoryId: string | null = null): Runway {
   const cashCents = cashOnHand(snapshot, now);
   const burn = burnProfile(snapshot, now);
-  const stress = 1 + Math.max(-90, stressPercent) / 100;
-  const monthlyExpenseCents = Math.round(burn.averageExpenseCents * stress);
+  const stress = Math.max(-90, stressPercent) / 100;
+  const stressedBase = stressCategoryId
+    ? burnProfile(snapshot, now, 3, (tx) => tx.categoryId === stressCategoryId).averageExpenseCents
+    : burn.averageExpenseCents;
+  const monthlyExpenseCents = burn.averageExpenseCents + Math.round(stressedBase * stress);
   const monthlyIncomeCents = burn.averageIncomeCents;
   const monthlyNetBurnCents = monthlyExpenseCents - monthlyIncomeCents;
   const cashFlowPositive = monthlyNetBurnCents <= 0;
@@ -124,6 +134,7 @@ export function computeRunway(snapshot: LedgerSnapshot, now: Date, stressPercent
   return {
     cashCents,
     stressPercent,
+    stressCategoryId,
     monthlyExpenseCents,
     monthlyIncomeCents,
     monthlyNetBurnCents,

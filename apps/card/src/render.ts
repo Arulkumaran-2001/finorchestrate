@@ -193,7 +193,10 @@ function income(card: IncomeCard): string {
 
 function runway(card: RunwayCard): string {
   const until = card.zeroCashDate ? new Date(card.zeroCashDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : null;
-  const stress = card.stressPercent !== 0 ? `<span class="fo-chip fo-chip--accent">Spending ${card.stressPercent > 0 ? '+' : ''}${card.stressPercent}%</span>` : '';
+  const stress =
+    card.stressPercent !== 0
+      ? `<span class="fo-chip fo-chip--accent">${escapeHtml(card.stressScope ?? 'Spending')} ${card.stressPercent > 0 ? '+' : ''}${card.stressPercent}%</span>`
+      : '';
   return `${header('runway', 'Runway', escapeHtml(card.months === null ? 'Cash positive' : `${card.months.toFixed(1)} months`), stress)}
     <div class="fo-card__body">
       <p class="fo-summary">${until ? `At this burn the cash lasts until <strong>${escapeHtml(until)}</strong>.` : 'Income covers spending, so cash is growing.'}</p>

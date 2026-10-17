@@ -177,6 +177,18 @@ function describe(fragment: string): string {
     .trim();
 }
 
+/** A what-if on runway, limited to one envelope when the speaker names one ("cloud costs", "contractor spend"). */
+function stressedRunway(text: string, stress: number, context: IntentContext): ParsedIntent {
+  const category = matchCategory(text, context.categories as Category[]);
+  const rising = stress >= 0;
+  const scope = category ? `${category.name} costs ${rising ? 'rise' : 'fall'}` : `spending ${rising ? 'rises' : 'falls'}`;
+  return {
+    tool: 'get_runway',
+    arguments: { stress_percent: stress, ...(category ? { category: category.id } : {}) },
+    understood: `Runway if ${scope} ${Math.abs(stress)}%`,
+  };
+}
+
 export function parseUtterance(utterance: string, context: IntentContext): ParsedIntent | null {
   // `cased` keeps the original casing for descriptions; `text` is what the rules match against.
   // Both have identical length, so an index found in one is valid in the other.
@@ -259,22 +271,12 @@ export function parseUtterance(utterance: string, context: IntentContext): Parse
   }
   if (/\b(runway|how long|months? (left|of (money|cash|runway))|how many months|burn( rate)?|last at this|run out)\b/.test(text)) {
     const percent = extractPercent(text);
-    const lower = DECREASE.test(text);
-    const stress = percent !== undefined ? (lower ? -percent : percent) : undefined;
-    return {
-      tool: 'get_runway',
-      arguments: stress !== undefined ? { stress_percent: stress } : {},
-      understood: stress !== undefined ? `Runway if spending ${stress >= 0 ? 'rises' : 'falls'} ${Math.abs(stress)}%` : 'Calculate runway',
-    };
+    const stress = percent !== undefined ? (DECREASE.test(text) ? -percent : percent) : undefined;
+    return stress !== undefined ? stressedRunway(text, stress, context) : { tool: 'get_runway', arguments: {}, understood: 'Calculate runway' };
   }
-  if (/\bwhat if\b.*\b(costs?|spend(ing)?|burn|expenses?)\b/.test(text)) {
+  if (/\bwhat if\b.*\b(costs?|spend(ing)?|burn|expenses?|bills?)\b/.test(text)) {
     const percent = extractPercent(text) ?? 20;
-    const lower = DECREASE.test(text);
-    return {
-      tool: 'get_runway',
-      arguments: { stress_percent: lower ? -percent : percent },
-      understood: `Runway if spending ${lower ? 'falls' : 'rises'} ${percent}%`,
-    };
+    return stressedRunway(text, DECREASE.test(text) ? -percent : percent, context);
   }
   if (/\b(forecast|projection|project|outlook|where will (we|i) be|next \d+ months?|in \d+ months?|cash flow)\b/.test(text)) {
     const months = Math.min(12, Math.max(1, extractMonths(text) ?? 3));

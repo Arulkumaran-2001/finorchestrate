@@ -3,7 +3,7 @@
  * based browsers; synthesis everywhere. The console degrades to typing when
  * recognition is missing or the microphone is blocked.
  */
-interface RecognitionLike {
+export interface RecognitionLike {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
@@ -16,9 +16,9 @@ interface RecognitionLike {
   onend: (() => void) | null;
 }
 
-type RecognitionConstructor = new () => RecognitionLike;
+export type RecognitionConstructor = new () => RecognitionLike;
 
-function recognitionConstructor(): RecognitionConstructor | null {
+export function recognitionConstructor(): RecognitionConstructor | null {
   const scope = window as unknown as { SpeechRecognition?: RecognitionConstructor; webkitSpeechRecognition?: RecognitionConstructor };
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition ?? null;
 }
@@ -35,7 +35,7 @@ export interface ListenHandlers {
   onError: (message: string) => void;
 }
 
-const ERRORS: Record<string, string> = {
+export const SPEECH_ERRORS: Record<string, string> = {
   'not-allowed': 'Microphone access is blocked. Allow it in the browser, or type instead.',
   'service-not-allowed': 'Speech recognition is not allowed here. Type your request instead.',
   'no-speech': 'I did not hear anything. Tap the microphone and try again.',
@@ -67,7 +67,7 @@ export function listen(handlers: ListenHandlers): () => void {
     handlers.onInterim((finalText + interim).trim());
   };
   recognition.onerror = (event) => {
-    if (event.error !== 'aborted') handlers.onError(ERRORS[event.error] ?? `Speech recognition stopped (${event.error}).`);
+    if (event.error !== 'aborted') handlers.onError(SPEECH_ERRORS[event.error] ?? `Speech recognition stopped (${event.error}).`);
   };
   recognition.onend = () => {
     if (finalText.trim()) handlers.onFinal(finalText.trim());

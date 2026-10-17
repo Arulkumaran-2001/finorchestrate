@@ -149,15 +149,17 @@ export function buildMcpServer(deps: McpServerDeps, authInfo: AuthInfo | undefin
     'get_runway',
     {
       title: 'Runway',
-      description: 'Cash on hand, monthly net burn and how many months the money lasts. Pass stress_percent to ask "what if spending rises 25 percent".',
+      description:
+        'Cash on hand, monthly net burn and how many months the money lasts. Pass stress_percent to ask "what if spending rises 25 percent", and category to limit the change to one envelope ("what if cloud costs go up 25 percent").',
       inputSchema: z.object({
         stress_percent: z.number().min(-90).max(300).optional().describe('Change in spending to simulate, for example 25 or -10'),
+        category: z.string().min(1).max(60).optional().describe('Envelope the change applies to, by name or id. Omit to change all spending.'),
       }),
       outputSchema: outputSchemas.runway,
       annotations: readOnly,
       _meta: ui,
     },
-    async ({ stress_percent }) => run(async () => cards.runway(await service.runway(stress_percent ?? 0))),
+    async ({ stress_percent, category }) => run(async () => cards.runway(await service.runway(stress_percent ?? 0, category))),
   );
 
   registerAppTool(

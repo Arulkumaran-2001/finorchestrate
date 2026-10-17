@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent } from 'react';
-import { EXAMPLE_UTTERANCES, type IntentContext } from '@finorchestrate/core';
+import { EXAMPLE_UTTERANCES, WAKE_PHRASE, type IntentContext } from '@finorchestrate/core';
 import { Button } from '../../components/Button';
 import { Icon } from '../../components/Icon';
 import { Segmented, Toggle } from '../../components/forms';
@@ -11,6 +11,7 @@ import { McpHost, type TraceEntry } from '../../mcp/host';
 import { McpAppFrame } from '../../mcp/McpAppFrame';
 import { runBedrock, runLocal, type BedrockMessage, type ToolCallRecord } from '../../mcp/planner';
 import { listen, speak, speechSupport, stopSpeaking } from '../../mcp/speech';
+import { WakeListener } from '../../mcp/wake';
 import './assistant.css';
 
 interface Turn {
@@ -25,6 +26,7 @@ interface Turn {
 }
 
 type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
+type OrbLook = OrbState | 'armed';
 
 let turnCounter = 0;
 const nextId = () => `turn-${(turnCounter += 1)}`;
@@ -42,6 +44,16 @@ function useHost(): McpHost {
   return host;
 }
 
+function useWake(): WakeListener {
+  const wake = useMemo(() => new WakeListener(), []);
+  useSyncExternalStore(
+    (listener) => wake.subscribe(listener),
+    () => wake.snapshot(),
+  );
+  useEffect(() => () => wake.destroy(), [wake]);
+  return wake;
+}
+
 function readSpeakPreference(): boolean {
   try {
     return window.localStorage.getItem('finorchestrate.speak') !== 'off';
@@ -52,6 +64,7 @@ function readSpeakPreference(): boolean {
 
 export default function AssistantPage() {
   const host = useHost();
+  const wake = useWake();
   const { resolved: theme } = useTheme();
   const categories = useQuery<{ categories: CategoryDefinition[] }>(CATEGORIES_QUERY);
   const [planner, setPlanner] = useState<{ kind: string; model: string | null }>({ kind: 'local', model: null });
@@ -159,12 +172,35 @@ export default function AssistantPage() {
     [host, intentContext, orb, planner.kind, speakReplies],
   );
 
+  // Hands-free hears only while the console is idle, so it never transcribes its own replies.
+  const orbRef = useRef(orb);
+  useEffect(() => {
+    orbRef.current = orb;
+    if (orb === 'idle') wake.release();
+    else wake.hold();
+  }, [orb, wake]);
+
+  useEffect(() => {
+    wake.onCommand = (text) => {
+      void ask(text).finally(() => {
+        if (orbRef.current === 'idle') wake.release();
+      });
+    };
+  }, [wake, ask]);
+
+  const setHandsFree = (value: boolean) => {
+    setVoiceError(null);
+    if (value) void wake.enable();
+    else wake.disable();
+  };
+
   const toggleListening = () => {
     if (orb === 'listening') {
       stopListening.current?.();
       return;
     }
     if (orb === 'thinking') return;
+    wake.hold();
     stopSpeaking();
     setVoiceError(null);
     setInterim('');
@@ -209,8 +245,34 @@ export default function AssistantPage() {
     setTurns((current) => [...current, { id: nextId(), role: 'note', text }]);
   }, []);
 
-  const orbLabel = { idle: 'Tap to talk', listening: 'Listening', thinking: 'Working on it', speaking: 'Speaking' }[orb];
   const connected = host.status === 'ready';
+  const awake = orb === 'idle' && wake.status === 'awake';
+  const look: OrbLook = awake ? 'listening' : orb === 'idle' && wake.status === 'waiting' ? 'armed' : orb;
+  const orbLabel = {
+    idle: 'Tap to talk',
+    armed: `Say "${WAKE_PHRASE}"`,
+    listening: 'Listening',
+    thinking: 'Working on it',
+    speaking: 'Speaking',
+  }[look];
+  const placeholder =
+    look === 'listening'
+      ? 'Listening...'
+      : look === 'armed'
+        ? `Say "${WAKE_PHRASE}", then ask`
+        : wake.status === 'preparing'
+          ? 'Getting hands-free ready...'
+          : 'Ask about budgets, runway, charges or approvals';
+  const heard = orb === 'listening' ? interim : awake ? wake.heard : '';
+  const voiceMessage = voiceError ?? wake.message;
+  const handsFreeNote =
+    wake.status === 'off' || wake.status === 'error'
+      ? `Wake the console by saying "${WAKE_PHRASE}"`
+      : wake.status === 'preparing'
+        ? 'Checking for on-device speech'
+        : wake.engine === 'device'
+          ? 'Speech is recognized on this device'
+          : "Audio goes to the browser's speech service while on";
 
   return (
     <div className={`console console--${panel}`}>
@@ -238,6 +300,12 @@ export default function AssistantPage() {
               <Icon name={connected ? 'success' : host.status === 'error' ? 'critical' : 'clock'} size={13} />
               {connected ? `MCP ${host.info?.protocolVersion ?? ''}` : host.status === 'error' ? 'MCP offline' : 'Connecting'}
             </Badge>
+            {wake.enabled && wake.engine ? (
+              <Badge tone={wake.engine === 'device' ? 'good' : 'neutral'}>
+                <Icon name={wake.engine === 'device' ? 'lock' : 'cloud'} size={13} />
+                {wake.engine === 'device' ? 'Hands-free, on device' : 'Hands-free, speech service'}
+              </Badge>
+            ) : null}
             <Badge tone="accent">
               <Icon name={planner.kind === 'bedrock' ? 'cloud' : 'code'} size={13} />
               {planner.kind === 'bedrock' ? `Bedrock ${planner.model ?? ''}`.trim() : 'Local intent engine'}
@@ -276,16 +344,16 @@ export default function AssistantPage() {
               ))}
             </div>
           ) : null}
-          {voiceError ? (
+          {voiceMessage ? (
             <p className="composer__error" role="alert">
               <Icon name="warning" size={14} />
-              {voiceError}
+              {voiceMessage}
             </p>
           ) : null}
           <div className="composer__bar">
             <button
               type="button"
-              className={`orb orb--${orb}`}
+              className={`orb orb--${look}`}
               onClick={toggleListening}
               aria-pressed={orb === 'listening'}
               aria-label={orb === 'listening' ? 'Stop listening' : 'Start voice input'}
@@ -294,7 +362,7 @@ export default function AssistantPage() {
             >
               <span className="orb__ring" aria-hidden="true" />
               <span className="orb__core">
-                <Icon name={orb === 'listening' ? 'stop' : orb === 'speaking' ? 'speaker' : 'microphone'} size={22} />
+                <Icon name={orb === 'listening' ? 'stop' : look === 'speaking' ? 'speaker' : 'microphone'} size={22} />
               </span>
             </button>
             <div className="composer__field">
@@ -305,13 +373,13 @@ export default function AssistantPage() {
                 ref={input}
                 id="console-input"
                 className="composer__input"
-                placeholder={orb === 'listening' ? 'Listening...' : 'Ask about budgets, runway, charges or approvals'}
-                value={orb === 'listening' && interim ? interim : draft}
+                placeholder={placeholder}
+                value={heard || draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={onInputKey}
                 autoComplete="off"
                 maxLength={300}
-                readOnly={orb === 'listening'}
+                readOnly={orb === 'listening' || awake}
               />
               <span className="composer__state" aria-live="polite">
                 {orbLabel}
@@ -320,7 +388,16 @@ export default function AssistantPage() {
             <Button type="submit" variant="primary" icon="send" iconOnlyLabel="Send" disabled={!draft.trim() || !connected || orb === 'thinking'} />
           </div>
           <div className="composer__options">
-            <Toggle checked={speakReplies} onChange={setSpeak} label="Speak replies" disabled={!speechSupport.synthesis()} />
+            <div className="composer__toggles">
+              <Toggle
+                checked={wake.enabled}
+                onChange={setHandsFree}
+                label="Hands-free"
+                description={handsFreeNote}
+                disabled={!connected || !speechSupport.recognition()}
+              />
+              <Toggle checked={speakReplies} onChange={setSpeak} label="Speak replies" disabled={!speechSupport.synthesis()} />
+            </div>
             {turns.length > 0 ? (
               <Button
                 variant="ghost"

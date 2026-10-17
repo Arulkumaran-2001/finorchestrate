@@ -36,12 +36,14 @@ export function assessTransaction(
   const time = Date.parse(tx.occurredAt);
   const merchantKey = normalizeMerchant(tx.merchant);
   const windowMs = (options.duplicateWindowDays ?? 3) * DAY_MS;
-  const earlier = ledger.filter(
-    (other) =>
-      other.id !== tx.id &&
-      other.direction === 'expense' &&
-      (Date.parse(other.occurredAt) < time || (Date.parse(other.occurredAt) === time && other.createdAt < tx.createdAt)),
-  );
+  // Charges with the same timestamp (a statement imported twice) are ordered by when they were recorded, then by id,
+  // so exactly one of an identical pair counts as the earlier one.
+  const earlier = ledger.filter((other) => {
+    if (other.id === tx.id || other.direction !== 'expense') return false;
+    const at = Date.parse(other.occurredAt);
+    if (at !== time) return at < time;
+    return other.createdAt === tx.createdAt ? other.id < tx.id : other.createdAt < tx.createdAt;
+  });
 
   const duplicate = earlier.find(
     (other) =>

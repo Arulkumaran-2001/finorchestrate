@@ -30,6 +30,7 @@ Accept: application/json, text/event-stream
       "speech": "If spending rises 25 percent, ...",
       "cashCents": 3904512,
       "stressPercent": 25,
+      "stressScope": null,
       "monthlyExpenseCents": 855604,
       "monthlyIncomeCents": 463430,
       "monthlyNetBurnCents": 392174,
@@ -51,7 +52,7 @@ Arguments use US dollars; results use integer cents.
 | `get_budget_status` | `category?` | read only, idempotent | Envelopes sorted by concern; `focusId` when a category is given |
 | `log_expense` | `amount`, `description`, `category?`, `merchant?`, `occurred_on?` | write | Auto categorised; returns `anomaly` when it looks unusual |
 | `log_income` | `amount`, `description`, `occurred_on?` | write | Returns new cash and runway |
-| `get_runway` | `stress_percent?` | read only, idempotent | `months` is null when cash flow positive |
+| `get_runway` | `stress_percent?`, `category?` | read only, idempotent | `months` is null when cash flow positive. With `category` the change applies to that envelope only |
 | `forecast_cash` | `months`, `stress_percent?` | read only, idempotent | Points with p10, p50, p90 |
 | `audit_spending` | `days?`, `sensitivity?` | read only, idempotent | Findings with spoken reasons |
 | `check_affordability` | `amount`, `description`, `category?`, `recurring?` | read only, idempotent | Verdict plus a transfer or wait suggestion |

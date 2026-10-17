@@ -24,6 +24,7 @@ And it acts on its own, inside limits you set:
 | Capability | How it works |
 |---|---|
 | **Voice first answers** | 13 MCP tools, each returning a `speech` line written to be read aloud plus typed `structuredContent`. |
+| **Hands-free, like a smart speaker** | Say "Hey Fino" and ask. Speech is recognized on the device when the browser supports it, the console chimes when it wakes, and it never listens while it is talking. |
 | **Autonomous guardian** | Projects every envelope to month end, moves small gaps on its own (default $250 per move, $600 a month, reserve first), asks for approval above that. Runs on a schedule (in process, or EventBridge Scheduler on AWS). |
 | **Human in the loop** | Large voice moves and large guardian proposals become approvals you accept by voice ("approve it"), from an interactive card, or from the dashboard. |
 | **Catches odd charges** | Duplicate detection plus robust outlier detection (median and MAD modified z-score) against each merchant's and envelope's own history. |
@@ -52,7 +53,7 @@ The demo workspace is **Lumen Labs**, a four person studio with five months of h
 
 ### Try these in the voice console
 
-Open **Voice console** and tap the microphone (Chrome or Edge) or type:
+Open **Voice console** and tap the microphone (Chrome or Edge), type, or turn on **Hands-free** and start each request with "Hey Fino":
 
 1. "How is the budget looking this month?"
 2. "Run the guardian"
@@ -63,6 +64,10 @@ Open **Voice console** and tap the microphone (Chrome or Edge) or type:
 7. "What did I miss?"
 
 The **Protocol inspector** beside the conversation shows every JSON-RPC message on the wire, including tool calls made by the cards themselves.
+
+### Hands-free
+
+Turn on **Hands-free** under the composer and allow the microphone once. The orb glows while it waits. Say "Hey Fino", wait for the chime (or keep talking), then ask: "Hey Fino, any unusual charges?". The badge in the header shows **on device** when Chrome's on-device speech model is in use, so room audio stays on your machine; the first time, Chrome may download the model while the console already listens through its speech service. How it works is in [docs/architecture.md](docs/architecture.md#hands-free-wake-phrase).
 
 ### Production build
 
@@ -102,7 +107,7 @@ The **Agent Skill** in [skills/budget-guardian](skills/budget-guardian/SKILL.md)
 |---|---|
 | `get_budget_status` | This month's envelopes, or one envelope in detail |
 | `log_expense` / `log_income` | Record money out or in; expenses are auto categorised and checked for anomalies |
-| `get_runway` | Cash, net burn and months left, with optional "what if spending rises X%" |
+| `get_runway` | Cash, net burn and months left, with optional "what if spending rises X%", for everything or one envelope |
 | `forecast_cash` | 1 to 12 month projection with a 10th to 90th percentile band and shortfall probability |
 | `audit_spending` | Duplicates and outliers with a plain language reason each |
 | `check_affordability` | Verdict, envelope impact, runway impact and a way to make room |
@@ -187,7 +192,7 @@ npm test
 npm run typecheck
 ```
 
-- 88 tests: domain math and guardian decisions, the voice intent engine, the MCP server driven by the official client over Streamable HTTP in both protocol eras, the HTTP surface (auth, DNS rebinding protection, CSRF hardening, GraphQL), and the AWS adapters against mocked AWS clients.
+- 112 tests: domain math and guardian decisions, the voice intent engine and wake phrase matching, a check that the demo tells the same story on every day of a quarter, the MCP server driven by the official client over Streamable HTTP in both protocol eras, the HTTP surface (auth, DNS rebinding protection, CSRF hardening, GraphQL), and the AWS adapters against mocked AWS clients.
 - Strict TypeScript everywhere, CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - Security: bearer tokens compared in constant time, signed HttpOnly SameSite=Strict sessions, Host and Origin validation against DNS rebinding, rate limits on sign in and the planner, a strict Content Security Policy that allows exactly the card's hashed inline code, and MCP App cards in sandboxed iframes with an opaque origin.
 - Accessibility: keyboard reachable custom controls (listbox, switch, slider, segmented control), charts with keyboard readable crosshairs and a table view, status never shown by color alone, reduced motion support, light and dark themes, layouts from 320px up.

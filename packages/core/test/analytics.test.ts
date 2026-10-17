@@ -157,6 +157,15 @@ describe('anomaly detection', () => {
     expect(finding?.kind).toBe('new-merchant');
   });
 
+  it('treats an identical pair with the same timestamp as one duplicate', () => {
+    const at = '2026-10-02T09:00:00Z';
+    const first = expense('tx_a', 'Datadog', 186.4, at, 'tooling');
+    const second = expense('tx_b', 'Datadog', 186.4, at, 'tooling');
+    const pair = [first, second];
+    expect(assessTransaction(first, pair, categories, { sensitivity: 3.5 })).toBeUndefined();
+    expect(assessTransaction(second, pair, categories, { sensitivity: 3.5 })?.kind).toBe('duplicate');
+  });
+
   it('ignores small charges', () => {
     const tiny = expense('x', 'Datadog', 5, NOW.toISOString(), 'tooling');
     expect(assessTransaction(tiny, ledger.transactions, categories, { sensitivity: 3.5 })).toBeUndefined();

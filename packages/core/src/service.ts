@@ -121,6 +121,8 @@ export interface BudgetStatusResult {
 }
 
 export interface RunwayResult extends Runway {
+  /** Display name of `stressCategoryId`, or null when the scenario covers all spending. */
+  stressCategoryName: string | null;
   speech: string;
 }
 
@@ -335,10 +337,12 @@ export class FinanceService {
     };
   }
 
-  async runway(stressPercent = 0): Promise<RunwayResult> {
+  /** `categoryRef` limits a stress scenario to one envelope: "what if cloud costs go up 25 percent". */
+  async runway(stressPercent = 0, categoryRef?: string): Promise<RunwayResult> {
     const snapshot = await this.snapshot();
-    const runway = computeRunway(snapshot, this.clock(), clampNumber(stressPercent, -90, 300));
-    return { ...runway, speech: speakRunway(runway) };
+    const category = categoryRef && stressPercent !== 0 ? this.resolveCategory(snapshot, categoryRef) : null;
+    const runway = computeRunway(snapshot, this.clock(), clampNumber(stressPercent, -90, 300), category?.id ?? null);
+    return { ...runway, stressCategoryName: category?.name ?? null, speech: speakRunway(runway, category?.name) };
   }
 
   async forecast(months: number, stressPercent = 0): Promise<ForecastResult> {
@@ -961,8 +965,10 @@ function speakBudget(statuses: CategoryStatus[], totals: BudgetTotals): string {
   return `${opening} ${first.name} is on pace to run about ${speakMoney(first.projectedCents - first.limitCents, { approx: true })} over.${rest}`;
 }
 
-function speakRunway(runway: Runway): string {
-  const stress = runway.stressPercent !== 0 ? `If spending ${runway.stressPercent > 0 ? 'rises' : 'falls'} ${Math.abs(runway.stressPercent)} percent, ` : '';
+function speakRunway(runway: Runway, categoryName?: string): string {
+  const subject = categoryName ? `${categoryName} costs` : 'spending';
+  const verb = runway.stressPercent > 0 ? (categoryName ? 'rise' : 'rises') : categoryName ? 'fall' : 'falls';
+  const stress = runway.stressPercent !== 0 ? `If ${subject} ${verb} ${Math.abs(runway.stressPercent)} percent, ` : '';
   if (runway.cashFlowPositive) {
     return `${stress}${stress ? 'income' : 'Income'} still covers spending, so cash grows by about ${speakMoney(-runway.monthlyNetBurnCents)} a month. If income stopped, ${speakMoney(runway.cashCents)} would last ${runway.grossMonths.toFixed(1)} months.`;
   }

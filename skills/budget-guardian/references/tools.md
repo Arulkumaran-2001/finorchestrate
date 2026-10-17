@@ -7,7 +7,7 @@ All amounts in arguments are US dollars. All amounts in results are integer US c
 | `get_budget_status` | `category?` | `budget` | read only |
 | `log_expense` | `amount`, `description`, `category?`, `merchant?`, `occurred_on?` (YYYY-MM-DD) | `expense` | writes |
 | `log_income` | `amount`, `description`, `occurred_on?` | `income` | writes |
-| `get_runway` | `stress_percent?` (-90 to 300) | `runway` | read only |
+| `get_runway` | `stress_percent?` (-90 to 300), `category?` (limits the change to one envelope) | `runway` | read only |
 | `forecast_cash` | `months` (1 to 12), `stress_percent?` | `forecast` | read only |
 | `audit_spending` | `days?` (default 45), `sensitivity?` (1.5 to 10) | `audit` | read only |
 | `check_affordability` | `amount`, `description`, `category?`, `recurring?` | `affordability` | read only |

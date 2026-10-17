@@ -20,7 +20,8 @@ beforeAll(async () => {
     FINO_DEMO_MODE: 'true',
     FINO_WEB_DIST: 'does-not-exist',
   });
-  const runtime = await createRuntime(config, () => undefined);
+  // A fixed clock: the demo ledger is generated relative to "now", so assertions about it must not depend on the day CI runs.
+  const runtime = await createRuntime(config, () => undefined, { clock: () => new Date('2026-10-13T08:30:00Z') });
   app = await createHttpApp(runtime);
   server = createServer((req, res) => void app.handle(req, res));
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));

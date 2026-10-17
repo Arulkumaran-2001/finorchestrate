@@ -84,6 +84,7 @@ export const outputSchemas = {
     speech,
     cashCents: cents,
     stressPercent: z.number(),
+    stressScope: z.string().nullable(),
     monthlyExpenseCents: cents,
     monthlyIncomeCents: cents,
     monthlyNetBurnCents: cents,

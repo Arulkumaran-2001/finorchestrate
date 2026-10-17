@@ -27,11 +27,16 @@ export function createRepository(config: AppConfig): LedgerRepository {
 }
 
 /** Everything long lived, shared by the HTTP server and the scheduled guardian Lambda. */
-export async function createRuntime(config: AppConfig, log: (message: string) => void = (message) => console.log(message)): Promise<Runtime> {
+export async function createRuntime(
+  config: AppConfig,
+  log: (message: string) => void = (message) => console.log(message),
+  options: { clock?: () => Date } = {},
+): Promise<Runtime> {
   const notifier = createNotifier({ snsTopicArn: config.snsTopicArn, webhookUrl: config.webhookUrl, region: config.awsRegion, log });
   const service = new FinanceService({
     repository: createRepository(config),
     seed: createDemoLedger,
+    clock: options.clock,
     onChange: (event) => {
       pubSub.publish('ledger', event);
       void notifier.handle(event);

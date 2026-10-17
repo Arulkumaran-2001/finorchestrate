@@ -111,6 +111,8 @@ export type RunwayCard = {
   speech: string;
   cashCents: Cents;
   stressPercent: number;
+  /** Name of the envelope a stress scenario applies to, or null for all spending. */
+  stressScope: string | null;
   monthlyExpenseCents: Cents;
   monthlyIncomeCents: Cents;
   monthlyNetBurnCents: Cents;
@@ -325,6 +327,7 @@ export const cards = {
       speech: result.speech,
       cashCents: result.cashCents,
       stressPercent: result.stressPercent,
+      stressScope: result.stressCategoryName,
       monthlyExpenseCents: result.monthlyExpenseCents,
       monthlyIncomeCents: result.monthlyIncomeCents,
       monthlyNetBurnCents: result.monthlyNetBurnCents,

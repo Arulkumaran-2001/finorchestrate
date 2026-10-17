@@ -39,6 +39,7 @@ FinOrchestrate keeps a team's money in monthly envelopes (Cloud & Infrastructure
 ### Runway and what if questions
 - "How long can we last?" calls `get_runway`.
 - "What if costs go up 25 percent?" calls `get_runway` with `stress_percent: 25`.
+- "What if cloud costs go up 25 percent?" adds `category: "cloud"`, so only that envelope changes. Say which one in the answer.
 - "Where will we be in six months?" calls `forecast_cash` with `months: 6`. Report the likely figure and the chance of running out.
 
 ### Before a purchase

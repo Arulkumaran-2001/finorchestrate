@@ -25,7 +25,34 @@ const tick = (minutes: number) => {
   clock = new Date(clock.getTime() + minutes * 60_000);
 };
 
+describe('runway scenarios', () => {
+  it('limits a what-if to one envelope when asked about it', async () => {
+    const base = await service.runway();
+    const everything = await service.runway(25);
+    const cloud = await service.runway(25, 'cloud');
+    expect(cloud.monthlyExpenseCents).toBeGreaterThan(base.monthlyExpenseCents);
+    expect(cloud.monthlyExpenseCents).toBeLessThan(everything.monthlyExpenseCents);
+    expect(cloud.stressCategoryId).toBe('cloud');
+    expect(cloud.speech).toMatch(/^If Cloud & Infrastructure costs rise 25 percent, net burn becomes/);
+    expect(everything.speech).toMatch(/^If spending rises 25 percent/);
+  });
+});
+
 describe('guardian sweep', () => {
+  it('tells the same demo story whatever day the demo is opened', async () => {
+    const start = Date.parse('2026-10-01T08:30:00Z');
+    for (let day = 0; day < 92; day += 1) {
+      const at = new Date(start + day * 86_400_000);
+      const fresh = new FinanceService({ repository: new MemoryRepository(), seed: createDemoLedger, clock: () => at });
+      await fresh.init();
+      const report = await fresh.runGuardian(guardian);
+      expect({ day: at.toISOString().slice(0, 10), flagged: report.flagged.map((item) => item.merchant).sort() }).toEqual({
+        day: at.toISOString().slice(0, 10),
+        flagged: ['AWS S3', 'Datadog'],
+      });
+    }
+  });
+
   it('moves small gaps on its own and asks before large ones', async () => {
     const report = await service.runGuardian(guardian);
     expect(report.executed).toHaveLength(1);

@@ -47,12 +47,12 @@ Health is `over` (spent above limit), `at-risk` (projected above limit), `watch`
 
 For each expense, in order:
 
-1. **Duplicate**: same merchant and same amount within three days.
+1. **Duplicate**: same merchant and same amount within three days. Charges with the same timestamp (a statement imported twice) are ordered by when they were recorded, so exactly one of the pair is flagged.
 2. **Merchant outlier**: with four or more prior charges from the merchant, an Iglewicz and Hoaglin modified z-score (median and median absolute deviation) at or above the sensitivity (3.5 by default), at least 1.3 times the typical amount and $25 above it.
 3. **Short but consistent history** vouches for a charge up to 1.5 times its largest prior amount.
 4. **Category outlier or new merchant**: against the envelope's last 150 days, a stricter threshold, at least twice the median and above the 90th percentile.
 
-Every finding carries a one sentence reason that is spoken as is.
+Every finding carries a one sentence reason that is spoken as is. A charge is judged only against what came before it, so its verdict does not change from one day to the next.
 
 ### Guardian sweep
 
@@ -81,6 +81,18 @@ A second sweep right after the first finds nothing to do, which is what makes it
 - Cards render in `iframe sandbox="allow-scripts"` (opaque origin) and talk to the page only through the MCP Apps `AppBridge` postMessage protocol. Tool calls a card makes go through the same traced MCP client and are tagged as coming from the card.
 - The page's Content Security Policy allows exactly the card's inline script by hash, which the sandboxed `srcdoc` frame inherits.
 
+### Hands-free wake phrase
+
+Turn on **Hands-free** and the console behaves like a smart speaker: say "Hey Fino", hear a short chime, ask, and it answers and goes back to waiting.
+
+- **Private by default.** Where the browser has an on-device speech model (Chrome 139 and later), recognition runs on the machine and room audio never leaves it. If the model has to download, listening starts at once on the browser's speech service and moves to the device when the download finishes. The header badge always says which one is in use.
+- **Tolerant matching.** Recognizers spell an unfamiliar name many ways ("feeno", "phino", "vino", "fee no"). `matchWake` in `packages/core` compares a small phonetic key with an edit distance budget, needs a greeting before a fuzzy match, rejects lookalikes such as "fine" and "find", and splits "Hey Fino, what is our runway" into the wake phrase and the request. On device, contextual biasing nudges the recognizer toward the name.
+- **Never hears itself.** The listener stops while the console works or speaks, and resumes when it is idle again. Push to talk takes over cleanly while hands-free is on.
+- **Natural pauses.** After a final result it waits 900 ms for more speech, so "log forty two dollars ... for Bedrock" arrives as one request. With nothing after the wake phrase it goes back to sleep after 8 seconds with a closing tone.
+- **Self healing.** Browsers end recognition sessions after silence or a network blip; the listener restarts with a backoff and stops only on a real error such as a blocked microphone.
+
+On a real Alexa+ device none of this is needed: the device owns the wake word and sends the request to the MCP server. The console mirrors that experience in a browser.
+
 ## Security
 
 - MCP clients use a bearer token compared in constant time. The dashboard uses an HMAC signed, HttpOnly, SameSite=Strict session cookie (Secure behind HTTPS).
@@ -93,4 +105,4 @@ A second sweep right after the first finds nothing to do, which is what makes it
 
 - One workspace per deployment. The repository is keyed by workspace id, so multi tenancy is a routing change, not a data model change.
 - Live dashboard updates use an in memory event bus. On AWS Lambda, changes made by another instance appear on the next refresh rather than instantly.
-- Voice input relies on the browser's Web Speech API, available in Chromium based browsers. Typing works everywhere.
+- Voice input relies on the browser's Web Speech API, available in Chromium based browsers. Typing works everywhere. Hands-free keeps the microphone open while it is on, so it is off by default and is never turned on without a click.

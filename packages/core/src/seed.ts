@@ -137,6 +137,10 @@ export function createDemoLedger(now: Date): LedgerSnapshot {
   const datadog = toCents(186.4);
   add(recent(50), 'Datadog', 'Datadog APM and log management', 'tooling', datadog);
   add(recent(54), 'AWS EC2', 'GPU training run, g6.12xlarge spot', 'cloud', toCents(640));
+  // The GPU run was planned: the owner already confirmed it, so audits skip it and the history shows the review.
+  const gpuRun = transactions.find((tx) => tx.description.startsWith('GPU training run'));
+  const gpuReviewedAt = gpuRun ? new Date(Math.min(now.getTime(), Date.parse(gpuRun.occurredAt) + 3_600_000)).toISOString() : null;
+  if (gpuRun && gpuReviewedAt) gpuRun.reviewedAt = gpuReviewedAt;
   add(recent(27), 'AWS S3', 'S3 cross-region data transfer', 'cloud', toCents(486.12));
   add(recent(20), 'Datadog', 'Datadog APM and log management', 'tooling', datadog);
   add(recent(3), 'Corner Bistro', 'Team lunch for the launch review', 'operations', toCents(86.5), 'expense', 'voice');
@@ -202,6 +206,18 @@ export function createDemoLedger(now: Date): LedgerSnapshot {
           title: 'Logged $86.50 for Team lunch for the launch review',
           detail: 'Operations, via Alexa+ via MCP.',
           refs: { transactionId: lunch.id },
+        }]
+      : []),
+    ...(gpuRun && gpuReviewedAt
+      ? [{
+          id: 'evt_demo00007',
+          at: gpuReviewedAt,
+          type: 'transaction.reviewed' as const,
+          severity: 'success' as const,
+          actor: owner,
+          title: 'Marked AWS EC2 as expected',
+          detail: 'Planned GPU training run. $640 was reviewed.',
+          refs: { transactionId: gpuRun.id },
         }]
       : []),
     {

@@ -11,6 +11,7 @@ export * from './analytics/anomalies.js';
 export * from './analytics/affordability.js';
 export * from './guardian.js';
 export * from './intents.js';
+export * from './wake.js';
 export * from './repository.js';
 export * from './service.js';
 export * from './seed.js';

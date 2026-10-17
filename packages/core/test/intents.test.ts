@@ -55,8 +55,19 @@ describe('parseUtterance', () => {
 
   it('answers runway and stress questions', () => {
     expect(parse('How many months of runway do we have?')).toMatchObject({ tool: 'get_runway', arguments: {} });
-    expect(parse('What if cloud costs go up 25 percent?')).toMatchObject({ tool: 'get_runway', arguments: { stress_percent: 25 } });
-    expect(parse('how long can we last if spending drops 10%')).toMatchObject({ tool: 'get_runway', arguments: { stress_percent: -10 } });
+    expect(parse('What if cloud costs go up 25 percent?')).toEqual({
+      tool: 'get_runway',
+      arguments: { stress_percent: 25, category: 'cloud' },
+      understood: 'Runway if Cloud & Infrastructure costs rise 25%',
+    });
+    expect(parse('how long can we last if spending drops 10%')).toEqual({
+      tool: 'get_runway',
+      arguments: { stress_percent: -10 },
+      understood: 'Runway if spending falls 10%',
+    });
+    expect(parse('what if contractor spend goes up 20 percent')).toMatchObject({ arguments: { stress_percent: 20, category: 'contractors' } });
+    expect(parse('what if costs go up 30%')).toMatchObject({ arguments: { stress_percent: 30 } });
+    expect(parse('what if costs go up 30%')!.arguments).not.toHaveProperty('category');
   });
 
   it('forecasts with a horizon', () => {
