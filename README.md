@@ -4,6 +4,8 @@
 
 FinOrchestrate is a self-hosted **MCP server** (Model Context Protocol, spec **2025-11-25** and **2026-07-28** over **Streamable HTTP**) with **MCP Apps** cards, an **Agent Skill**, a live dashboard, and a browser based **Alexa+ simulator** that talks to the server exactly like an Alexa+ connector would.
 
+**Live demo:** <https://finorchestrate.vercel.app> (choose **Explore the demo workspace**; the demo data resets when the app sleeps)
+
 ![FinOrchestrate overview](docs/images/overview-light.png)
 
 ## Why
@@ -176,7 +178,7 @@ Step by step instructions, Bedrock model access and cost notes are in [docs/depl
 
 FinOrchestrate is one Node service: the server also serves the built dashboard and the card, so it deploys as **one** Vercel project. Vercel detects [Dockerfile.vercel](Dockerfile.vercel) at the repository root, builds it as a container and routes every path to it.
 
-1. Import the repository in Vercel. Keep the Container preset and the root directory `./`.
+1. Import the repository in Vercel. Vercel first suggests the Services preset because it sees several apps; open **Application Preset** and choose **Container** instead, and keep the root directory `./`.
 2. Add two environment variables: `FINO_API_TOKEN` (24 or more random characters) and `FINO_SESSION_SECRET` (32 or more random characters).
 3. Deploy, then open the deployment URL and choose **Explore the demo workspace**.
 
